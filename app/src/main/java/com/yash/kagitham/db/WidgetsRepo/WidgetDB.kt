@@ -1,6 +1,5 @@
-package com.yash.kagitham.db.allWidgets
+package com.yash.kagitham.db.WidgetsRepo
 
-import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase

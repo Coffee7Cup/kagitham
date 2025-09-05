@@ -25,8 +25,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginEntity
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginDB
-import com.yash.kagitham.db.allWidgets.WidgetDB
-import com.yash.kagitham.db.allWidgets.WidgetEntity
+import com.yash.kagitham.db.WidgetsRepo.WidgetDB
+import com.yash.kagitham.db.WidgetsRepo.WidgetEntity
 import com.yash.sdk.AppRegistry
 import com.yash.sdk.unzipPaper
 import kotlinx.coroutines.Dispatchers
@@ -125,7 +125,7 @@ suspend fun setupPlugin(path: String) {
     fileMeta.widgets.forEach { widgetClass ->
         val widgetEntity = WidgetEntity(
             owner = fileMeta.name,
-            widget = widgetClass,
+            widgetClass = widgetClass,
             apkPath = path,
         )
         widgetDao.insert(widgetEntity)

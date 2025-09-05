@@ -1,6 +1,6 @@
 package com.yash.kagitham.db.PluginRepo
 
-import com.yash.kagitham.db.allWidgets.WidgetDB
+import com.yash.kagitham.db.WidgetsRepo.WidgetDB
 import java.io.File
 
 object PluginRepo {

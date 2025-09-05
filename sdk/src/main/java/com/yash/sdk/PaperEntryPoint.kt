@@ -1,5 +1,6 @@
 package com.yash.sdk
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +19,10 @@ import androidx.navigation.NavController
 abstract class PaperEntryPoint {
 
     @Composable
-    abstract fun PluginContent()
+    abstract fun PluginContent(ctx : Context)
 
     @Composable
-    fun RenderWithHome() {
+    fun RenderWithHome(ctx : Context) {
         val navController: NavController? = AppRegistry.getNavController()
 
         Box(
@@ -44,7 +45,7 @@ abstract class PaperEntryPoint {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                PluginContent()
+                PluginContent(ctx)
             }
         }
     }

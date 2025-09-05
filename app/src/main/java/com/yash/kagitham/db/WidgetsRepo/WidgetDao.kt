@@ -1,4 +1,4 @@
-package com.yash.kagitham.db.allWidgets
+package com.yash.kagitham.db.WidgetsRepo
 
 import androidx.room.Dao
 import androidx.room.Delete

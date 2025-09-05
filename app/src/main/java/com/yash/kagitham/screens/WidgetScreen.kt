@@ -26,8 +26,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginEntity
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginDB
-import com.yash.kagitham.db.allWidgets.WidgetDB
-import com.yash.kagitham.db.allWidgets.WidgetEntity
+import com.yash.kagitham.db.WidgetsRepo.WidgetDB
+import com.yash.kagitham.db.WidgetsRepo.WidgetEntity
 import kotlinx.coroutines.launch
 
 class WidgetsViewModel : ViewModel() {
@@ -68,7 +68,7 @@ class WidgetsViewModel : ViewModel() {
                 WidgetDB.getDatabase().widgetDao().delete(widget)
                 loadSelectedWidgets()
             } catch (e: Exception) {
-                errorMessage = "Failed to remove widget: ${e.localizedMessage}"
+                errorMessage = "Failed to remove widgetClass: ${e.localizedMessage}"
             }
         }
     }
@@ -78,14 +78,14 @@ class WidgetsViewModel : ViewModel() {
             try {
                 val entity = WidgetEntity(
                     owner = owner,
-                    widget = widgetClass.substringAfterLast("."),
+                    widgetClass = widgetClass.substringAfterLast("."),
                     apkPath = apkPath
                 )
                 WidgetDB.getDatabase().widgetDao().insert(entity)
                 loadSelectedWidgets()
                 showAvailable = false
             } catch (e: Exception) {
-                errorMessage = "Failed to add widget: ${e.localizedMessage}"
+                errorMessage = "Failed to add widgetClass: ${e.localizedMessage}"
             }
         }
     }
@@ -186,10 +186,10 @@ fun Widgets(viewModel: WidgetsViewModel = viewModel()) {
                 }
             } else {
                 WidgetGrid(
-                    widgets = selected.map { it.widget },
+                    widgets = selected.map { it.widgetClass },
                     onClick = { /* no-op for selected */ },
                     onDelete = { name ->
-                        selected.find { it.widget == name }?.let {
+                        selected.find { it.widgetClass == name }?.let {
                             viewModel.removeWidget(it)
                         }
                     }

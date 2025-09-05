@@ -2,6 +2,7 @@ package com.yash.sdk
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.SharedPreferences
 import android.content.res.AssetManager
 import android.content.res.Resources
 import androidx.room.Room
@@ -13,8 +14,8 @@ import java.io.File
  * Handles files, cache, resources, databases, etc.
  */
 class PaperContextProvider(
-    base: Context,
-    private val paperName: String
+    private val paperName: String,
+    base: Context = AppRegistry.getAppContext() // host app context
 ) : ContextWrapper(base) {
 
     /** ---------------- Resources & Assets ---------------- */
@@ -32,6 +33,31 @@ class PaperContextProvider(
 
     override fun getResources(): Resources {
         return paperResources ?: super.getResources()
+    }
+
+    /** ---------------- Lock down escape routes ---------------- */
+
+    // Prevent plugins from jumping back to host app context
+    override fun getApplicationContext(): Context {
+        return this
+    }
+
+    override fun getBaseContext(): Context {
+        return this
+    }
+
+    override fun getPackageName(): String {
+        // Give a fake package name for plugin isolation
+        return "com.yash.plugin.$paperName"
+    }
+
+    override fun getPackageResourcePath(): String {
+        // Plugin's sandbox path
+        return getPluginRootDir().absolutePath
+    }
+
+    override fun getPackageCodePath(): String {
+        return getPluginRootDir().absolutePath
     }
 
     /** ---------------- Files & Cache ---------------- */
@@ -68,10 +94,13 @@ class PaperContextProvider(
         return android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name), factory)
     }
 
-    /**
-     * Create a Room database scoped to this plugin.
-     * Each plugin gets its own DB file inside its sandbox.
-     */
+    /** ---------------- SharedPreferences ---------------- */
+    override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences {
+        val prefName = "${paperName}_$name"
+        return super.getSharedPreferences(prefName, mode)
+    }
+
+    /** ---------------- Room DB ---------------- */
     fun <T : RoomDatabase> buildRoomDatabase(
         dbClass: Class<T>,
         dbName: String
@@ -79,8 +108,7 @@ class PaperContextProvider(
         return Room.databaseBuilder(
             this, // plugin context
             dbClass,
-            dbName
+            "${paperName}_$dbName"
         ).build()
     }
-
 }
