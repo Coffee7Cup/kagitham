@@ -12,5 +12,6 @@ data class MetaDataPluginEntity(
     val entryPoint: String,
     val widgets: String,   // ✅ just plain String
     val apiClass: String,
+    val apiInterface: String?,
     val path: String
 )

@@ -11,12 +11,6 @@ object ContextRegistry {
     // In-memory cache of plugin contexts
     private val contextMap = mutableMapOf<String, PaperContextProvider>()
 
-    /**
-     * Get or create a PaperContextProvider for a given plugin name.
-     *
-     * @param base Base app context
-     * @param pluginName Unique plugin name (same as in DB/metaData)
-     */
     fun getPluginContext(pluginName: String): PaperContextProvider {
         return contextMap.getOrPut(pluginName) {
             PaperContextProvider(pluginName)

@@ -1,5 +1,6 @@
 package com.yash.kagitham.screens
 
+import android.R
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,6 +49,7 @@ data class MetaDataFile(
     val entryPoint: String,
     val widgets: List<String>,  // ✅ keep it a list here
     val apiClass: String,
+    val apiInterface: String?
 )
 
 private const val GITHUB_PLUGINS_URL =
@@ -111,7 +113,8 @@ suspend fun setupPlugin(path: String) {
         entryPoint = fileMeta.entryPoint,
         widgets = Gson().toJson(fileMeta.widgets), // store as JSON string
         apiClass = fileMeta.apiClass,
-        path = path
+        apiInterface = fileMeta.apiInterface,
+        path = path,
     )
 
     MetaDataPluginDB.getDatabase()
