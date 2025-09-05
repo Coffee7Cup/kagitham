@@ -22,7 +22,7 @@ abstract class PaperEntryPoint {
     abstract fun PluginContent(ctx : Context)
 
     @Composable
-    fun RenderWithHome(ctx : Context) {
+    fun renderWithHome(ctx : Context) {
         val navController: NavController? = AppRegistry.getNavController()
 
         Box(

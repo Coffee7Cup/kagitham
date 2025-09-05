@@ -28,7 +28,11 @@ import com.yash.kagitham.db.PluginRepo.MetaDataPluginEntity
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginDB
 import com.yash.kagitham.db.WidgetsRepo.WidgetDB
 import com.yash.kagitham.db.WidgetsRepo.WidgetEntity
+import com.yash.kagitham.utils.PaperInstanceRegistry
+import com.yash.sdk.ContextRegistry
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class WidgetsViewModel : ViewModel() {
     var selectedWidgets by mutableStateOf<List<WidgetEntity>>(emptyList())
@@ -79,7 +83,7 @@ class WidgetsViewModel : ViewModel() {
                 val entity = WidgetEntity(
                     owner = owner,
                     widgetClass = widgetClass.substringAfterLast("."),
-                    apkPath = apkPath
+                    apkPath = apkPath,
                 )
                 WidgetDB.getDatabase().widgetDao().insert(entity)
                 loadSelectedWidgets()
@@ -138,8 +142,7 @@ fun Widgets(viewModel: WidgetsViewModel = viewModel()) {
                 modifier = Modifier.padding(8.dp)
             )
             LaunchedEffect(msg) {
-                // auto-clear after 3s
-                kotlinx.coroutines.delay(3000)
+                delay(3000)
                 viewModel.clearError()
             }
         }
@@ -157,7 +160,6 @@ fun Widgets(viewModel: WidgetsViewModel = viewModel()) {
                     )
                     Spacer(Modifier.height(6.dp))
 
-                    // 🔑 Convert JSON string -> List<String>
                     val widgetList: List<String> = remember(plugin.widgets) {
                         try {
                             val type = object : TypeToken<List<String>>() {}.type
@@ -175,8 +177,7 @@ fun Widgets(viewModel: WidgetsViewModel = viewModel()) {
                     )
                 }
             }
-        }
-        else {
+        } else {
             if (selected.isEmpty()) {
                 Box(
                     Modifier.fillMaxSize(),
@@ -185,15 +186,33 @@ fun Widgets(viewModel: WidgetsViewModel = viewModel()) {
                     Text("No widgets selected", color = Color.Gray)
                 }
             } else {
-                WidgetGrid(
-                    widgets = selected.map { it.widgetClass },
-                    onClick = { /* no-op for selected */ },
-                    onDelete = { name ->
-                        selected.find { it.widgetClass == name }?.let {
-                            viewModel.removeWidget(it)
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(selected) { widgetEntity ->
+                        // ✅ One context per plugin
+                        val pluginCtx = remember(widgetEntity.owner) {
+                            ContextRegistry.getPluginContext(widgetEntity.owner)
+                        }
+
+                        // ✅ One instance per widget
+                        val widgetInstance = remember(widgetEntity.id) {
+                            PaperInstanceRegistry.getWidgetInstance(widgetEntity)
+                        }
+
+                        // 🔑 Render the widget with its own context
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(6.dp),
+                            onClick = {  }
+                        ) {
+                            widgetInstance.Content(pluginCtx)
                         }
                     }
-                )
+                }
             }
         }
     }

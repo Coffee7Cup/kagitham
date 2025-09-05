@@ -1,5 +1,6 @@
 package com.yash.kagitham.screens
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,9 @@ import com.yash.kagitham.db.PluginRepo.MetaDataPluginDB
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginEntity
 import com.yash.kagitham.db.PluginRepo.MetaDataPluginDao
 import com.yash.kagitham.db.PluginRepo.PluginRepo
-import com.yash.sdk.loadDex
+import com.yash.kagitham.utils.PaperInstanceRegistry
+import com.yash.sdk.ContextRegistry
+import com.yash.sdk.PaperEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -56,6 +59,10 @@ class PaperViewModel(
     // Store plugin errors (pluginName → error message)
     private val _pluginErrors = MutableStateFlow<Map<String, String>>(emptyMap())
     val pluginErrors: StateFlow<Map<String, String>> = _pluginErrors
+
+    // Currently loaded plugin instance + its context
+    private val _loadedPlugin = MutableStateFlow<Pair<PaperEntryPoint, Context>?>(null)
+    val loadedPlugin: StateFlow<Pair<PaperEntryPoint, Context>?> = _loadedPlugin
 
     init {
         refreshPlugins()
@@ -79,9 +86,15 @@ class PaperViewModel(
     fun loadPlugin(plugin: MetaDataPluginEntity) {
         viewModelScope.launch {
             try {
-                loadDex(plugin.path, plugin.entryPoint)
-                // If success → clear error for this plugin
-                _pluginErrors.value = _pluginErrors.value - plugin.name
+                val pluginCtx = ContextRegistry.getPluginContext(plugin.name)
+                val instance = PaperInstanceRegistry.getPaperInstance(plugin)
+
+                if (instance is PaperEntryPoint) {
+                    _loadedPlugin.value = instance to pluginCtx
+                    _pluginErrors.value = _pluginErrors.value - plugin.name
+                } else {
+                    throw IllegalStateException("Plugin entry point is not a PaperEntryPoint")
+                }
             } catch (e: Exception) {
                 _pluginErrors.value = _pluginErrors.value + (plugin.name to (e.message ?: "Unknown error"))
             }
@@ -104,6 +117,7 @@ class PaperViewModel(
 fun Paper(viewModel: PaperViewModel = viewModel(factory = PaperViewModel.Factory)) {
     val plugins by viewModel.plugins.collectAsState()
     val errors by viewModel.pluginErrors.collectAsState()
+    val loadedPlugin by viewModel.loadedPlugin.collectAsState()
 
     Column(
         modifier = Modifier
@@ -144,6 +158,11 @@ fun Paper(viewModel: PaperViewModel = viewModel(factory = PaperViewModel.Factory
                     onCardClick = { viewModel.loadPlugin(plugin) }
                 )
             }
+        }
+
+        // 👉 Render currently loaded plugin (if any)
+        loadedPlugin?.let { (instance, ctx) ->
+            instance.renderWithHome(ctx)
         }
     }
 }

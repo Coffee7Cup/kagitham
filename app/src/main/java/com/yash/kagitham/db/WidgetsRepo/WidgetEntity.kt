@@ -3,6 +3,7 @@ package com.yash.kagitham.db.WidgetsRepo
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 /**
  * Data class representing a widgetClass entry in the database
@@ -10,7 +11,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "widgets")
 data class WidgetEntity(
-    @PrimaryKey(autoGenerate = true) val id: String,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     @ColumnInfo(name = "owner") val owner: String,
     @ColumnInfo(name = "widgetClass") val widgetClass: String,
     @ColumnInfo(name = "apk_path") val apkPath: String,
